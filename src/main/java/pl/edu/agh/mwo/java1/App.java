@@ -46,9 +46,7 @@ public class App {
                 break;
             case "continue":
                 inputValidator.validateContinueArgs(args);
-                String projectName = args[1];
-                Integer index = args.length > 2 ? Integer.parseInt(args[2]) : null;
-                taskService.continueTask(projectName, index);
+                taskService.continueTask();
                 break;
             case "current":
                 taskService.showCurrentTask();

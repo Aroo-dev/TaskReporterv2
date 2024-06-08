@@ -15,7 +15,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
 /**
  * Klasa TaskService zarządza zadaniami i projektami.
  */
@@ -25,24 +24,12 @@ public class TaskService {
     private TaskRepository taskRepository;
     private Logger logger;
 
-    /**
-     * Konstruktor klasy TaskService.
-     *
-     * @param taskRepository repozytorium projektów
-     * @param logger         logger do logowania wiadomości
-     */
     public TaskService(TaskRepository taskRepository, Logger logger) {
         this.taskRepository = taskRepository;
         this.projects = taskRepository.loadProjects();
         this.logger = logger;
     }
 
-    /**
-     * Rozpoczyna nowe zadanie.
-     *
-     * @param taskName    nazwa zadania
-     * @param projectName nazwa projektu
-     */
     public void startTask(String taskName, String projectName) {
         if (currentTask != null) {
             logger.logWarning("Stop the current task before starting a new one.");
@@ -54,9 +41,6 @@ public class TaskService {
         saveProjects();
     }
 
-    /**
-     * Kończy aktualne zadanie.
-     */
     public void stopTask() {
         if (currentTask == null) {
             logger.logWarning("No task is currently running.");
@@ -67,35 +51,24 @@ public class TaskService {
         saveProjects();
     }
 
-    /**
-     * Wznawia poprzednie zadanie w podanym projekcie lub ostatnie zastopowane zadanie.
-     *
-     * @param projectName nazwa projektu
-     * @param index       indeks zadania, opcjonalnie
-     */
-    public void continueTask(String projectName, Integer index) {
-        Optional<Project> projectOpt = projects.stream()
-                .filter(p -> p.getName().equals(projectName))
-                .findFirst();
-
-        if (!projectOpt.isPresent()) {
-            logger.logWarning("Invalid project name.");
-            return;
-        }
+    public void continueTask() {
         if (currentTask != null) {
             logger.logWarning("Stop the current task before continuing another one.");
             return;
         }
 
-        Project project = projectOpt.get();
-        Task previousTask;
+        Task previousTask = null;
+        Project projectToContinue = null;
 
-        if (index != null && index >= 0 && index < project.getTasks().size()) {
-            previousTask = project.getTasks().get(index);
-        } else {
-            previousTask = project.getTasks().stream()
-                    .filter(task -> task.getStopTask() != null)
-                    .reduce((first, second) -> second).orElse(null);
+        for (Project project : projects) {
+            for (Task task : project.getTasks()) {
+                if (task.getStopTask() != null) {
+                    if (previousTask == null || task.getStopTask().isAfter(previousTask.getStopTask())) {
+                        previousTask = task;
+                        projectToContinue = project;
+                    }
+                }
+            }
         }
 
         if (previousTask == null) {
@@ -104,13 +77,10 @@ public class TaskService {
         }
 
         currentTask = new Task(previousTask.getTaskName());
-        project.addTask(currentTask);
+        projectToContinue.addTask(currentTask);
         saveProjects();
     }
 
-    /**
-     * Wyświetla aktualnie śledzone zadanie.
-     */
     public void showCurrentTask() {
         if (currentTask == null) {
             logger.logInfo("No task is currently running.");
@@ -119,11 +89,6 @@ public class TaskService {
         }
     }
 
-    /**
-     * Wyświetla zadania w podanym projekcie.
-     *
-     * @param projectName nazwa projektu
-     */
     public void listTasks(String projectName) {
         Optional<Project> projectOpt = projects.stream()
                 .filter(p -> p.getName().equals(projectName))
@@ -136,9 +101,6 @@ public class TaskService {
         }
     }
 
-    /**
-     * Wyświetla wszystkie projekty.
-     */
     public void listProjects() {
         projects.stream()
                 .map(Project::getName)
@@ -146,9 +108,6 @@ public class TaskService {
                 .forEach(logger::logInfo);
     }
 
-    /**
-     * Wyświetla raport z wszystkich projektów.
-     */
     public void report() {
         projects.forEach(project -> {
             logger.logInfo("Project: " + project.getName());
@@ -185,11 +144,6 @@ public class TaskService {
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
 
-    /**
-     * Zwraca aktualne zadanie.
-     *
-     * @return aktualne zadanie
-     */
     public Task getCurrentTask() {
         return currentTask;
     }

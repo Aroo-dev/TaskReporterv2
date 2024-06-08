@@ -26,7 +26,7 @@ public class InteractiveCLI {
     }
 
     public void start() {
-        printHelp();
+
 
         while (true) {
             System.out.print("Enter command: ");
@@ -54,10 +54,7 @@ public class InteractiveCLI {
                 taskService.stopTask();
                 break;
             case "continue":
-                inputValidator.validateContinueArgs(args);
-                String projectName = args[1];
-                Integer index = args.length > 2 ? Integer.parseInt(args[2]) : null;
-                taskService.continueTask(projectName, index);
+                taskService.continueTask();
                 break;
             case "current":
                 taskService.showCurrentTask();
@@ -79,7 +76,7 @@ public class InteractiveCLI {
                 printHelp();
                 break;
             default:
-                logger.logWarning("Unknown command. Use app -h to display help.");
+                logger.logWarning("Unknown command. Use -h to display help.");
         }
     }
 
@@ -87,7 +84,7 @@ public class InteractiveCLI {
         System.out.println("Komendy:");
         System.out.println("app start <taskName> <projectName> - Rozpoczęcie nowego zadania");
         System.out.println("app stop - Zakończenie aktualnego zadania");
-        System.out.println("app continue <projectName> [taskIndex] - Wznowienie zadania, opcjonalnie z podanym indeksem");
+        System.out.println("app continue - kontynuowanie ostatniego zadania ");
         System.out.println("app current - Wyświetlenie aktualnie śledzonego zadania");
         System.out.println("app list [projectName] - Wyświetlenie pięciu ostatnich aktywności lub zadań w projekcie");
         System.out.println("app project - Wyświetlenie wszystkich projektów");

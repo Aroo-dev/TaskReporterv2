@@ -3,12 +3,14 @@ package pl.edu.agh.mwo.java1.model;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Klasa reprezentująca pojedyncze zadanie.
  */
 public class Task {
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     private static final AtomicLong counter = new AtomicLong(0);
     private Long id;
     private String taskName;
@@ -32,10 +34,13 @@ public class Task {
      * Konstruktor bezparametrowy.
      */
     public Task() {
-        // Konstruktor bezparametrowy wymagany do deserializacji, jeśli to konieczne
+
     }
 
-    // Gettery i Settery
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Long getId() {
         return id;
@@ -104,12 +109,23 @@ public class Task {
     public static Task fromCsv(String csvLine) {
         String[] parts = csvLine.split(",");
         Task task = new Task(parts[0]);
-        task.setStartTask(LocalDateTime.parse(parts[1]));
+        if (!parts[1].isEmpty()) {
+            task.startTask = LocalDateTime.parse(parts[1], DATE_TIME_FORMATTER);
+        }
         if (!parts[2].isEmpty()) {
-            task.setStopTask(LocalDateTime.parse(parts[2]));
-            task.setTotalTime(Duration.parse(parts[3]));
+            task.stopTask = LocalDateTime.parse(parts[2], DATE_TIME_FORMATTER);
+            task.totalTime = Duration.parse(parts[3]);
         }
         return task;
+    }
+
+    public String toCsv() {
+        StringBuilder csv = new StringBuilder();
+        csv.append(taskName).append(",");
+        csv.append(startTask != null ? startTask.format(DATE_TIME_FORMATTER) : "").append(",");
+        csv.append(stopTask != null ? stopTask.format(DATE_TIME_FORMATTER) : "").append(",");
+        csv.append(totalTime);
+        return csv.toString();
     }
 }
 

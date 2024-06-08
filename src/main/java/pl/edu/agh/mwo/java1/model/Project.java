@@ -70,31 +70,19 @@ public class Project {
                 '}';
     }
 
-    /**
-     * Konwertuje projekt i jego zadania do formatu CSV.
-     *
-     * @return reprezentacja CSV projektu
-     */
+
     public String toCsv() {
         StringBuilder csv = new StringBuilder();
         for (Task task : tasks) {
-            csv.append(name).append(",").append(task.toString()).append("\n");
+            csv.append(name).append(",").append(task.toCsv()).append("\n");
         }
         return csv.toString();
     }
 
-    /**
-     * Tworzy projekt z CSV.
-     *
-     * @param csvLines linie CSV
-     * @return projekt
-     */
     public static Project fromCsv(List<String> csvLines) {
-        String projectName = csvLines.get(0).split(",")[0];
-        Project project = new Project(projectName);
+        Project project = new Project(csvLines.get(0).split(",")[0]);
         for (String line : csvLines) {
-            String[] parts = line.split(",", 2);
-            project.addTask(Task.fromCsv(parts[1]));
+            project.addTask(Task.fromCsv(line.substring(line.indexOf(",") + 1)));
         }
         return project;
     }
